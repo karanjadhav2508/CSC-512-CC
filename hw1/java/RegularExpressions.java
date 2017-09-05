@@ -6,6 +6,8 @@
  * @author Danny Reinheimer
  *
  */
+import java.util.*;
+
 public class RegularExpressions {
 	
 	
@@ -16,6 +18,12 @@ public class RegularExpressions {
 	// Array of symbols
 	private String [] symbols = {"(",")","{","}","[","]",",",";","+","-","*","/","==","!=",">",">=","<","<=",
 			"=","&&","||"};
+
+	// Array of letters
+	private List<String> letters = Arrays.asList("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".split(" "));
+
+	// Array of numbers
+	private List<String> numbers = Arrays.asList("0123456789".split(" "));
 	
 	/**
 	 * Checks to see if the input matches a space.  A space is defined as tab, spacebar, newline
@@ -52,13 +60,28 @@ public class RegularExpressions {
 	 * @param str The input string that is being pasrsed which will be read one charecter at a time
 	 * @return boolean indicating if it is an identifier
 	 */
-	public boolean isIdentifier(String str) {		
+	public boolean isIdentifier(String str) {
 		// TODO: Implement the recognition of identifiers 
-	
-
-
-
-
+		
+		if(str == null || str.isEmpty()) {
+			//System.out.println("null or empty");
+			return false;
+		}
+		char ch = str.charAt(0);
+		if(!letters.contains(ch)) {
+			//System.out.println("first : "+ch);
+			return false;
+		}
+		for(int i=1; i<str.length(); i++) {
+			ch = str.charAt(i);
+			//System.out.println("ch : "+ch);
+			if(!letters.contains(ch) && !numbers.contains(ch)) {
+				//System.out.println("fail");
+				return false;
+			}
+		}
+		
+		return true;
 	}
 
 
@@ -154,11 +177,12 @@ public class RegularExpressions {
 				return true;
 			}
 				return false;
-		}
-		
+		}		
 		// Check to see if we start with //
 		if(ch == '/' && str.length() > 1) {
 			// if the second character is / and we end with newline
+			System.out.println(str+" : "+(str.charAt(str.length()-1) == '\n'));
+			//System.out.println(str+" "+str.charAt(1)=='/'+" "+str.charAt(str.length()-1)+":"+(str.charAt(str.length() -1) == '\n'));
 			if(str.charAt(1) == '/' && str.charAt(str.length() -1) == '\n') {
 				return true;
 			}
