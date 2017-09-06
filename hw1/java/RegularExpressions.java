@@ -62,25 +62,16 @@ public class RegularExpressions {
 	 */
 	public boolean isIdentifier(String str) {
 		// TODO: Implement the recognition of identifiers 
-		
-		if(str == null || str.isEmpty()) {
-			//System.out.println("null or empty");
-			return false;
-		}
-		char ch = str.charAt(0);
-		if(!letters.contains(ch)) {
-			//System.out.println("first : "+ch);
+		String letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+		String all = letters + "0123456789_";
+		if(!str.contains(String.valueOf(str.charAt(0)))) {
 			return false;
 		}
 		for(int i=1; i<str.length(); i++) {
-			ch = str.charAt(i);
-			//System.out.println("ch : "+ch);
-			if(!letters.contains(ch) && !numbers.contains(ch)) {
-				//System.out.println("fail");
-				return false;
-			}
+			if(!all.contains(String.valueOf(str.charAt(0)))) {
+                        return false;
+                	}
 		}
-		
 		return true;
 	}
 
