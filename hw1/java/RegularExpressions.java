@@ -19,12 +19,6 @@ public class RegularExpressions {
 	private String [] symbols = {"(",")","{","}","[","]",",",";","+","-","*","/","==","!=",">",">=","<","<=",
 			"=","&&","||"};
 
-	// Array of letters
-	private List<String> letters = Arrays.asList("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".split(" "));
-
-	// Array of numbers
-	private List<String> numbers = Arrays.asList("0123456789".split(" "));
-	
 	/**
 	 * Checks to see if the input matches a space.  A space is defined as tab, spacebar, newline
 	 * @param str The String to be checked
@@ -61,16 +55,16 @@ public class RegularExpressions {
 	 * @return boolean indicating if it is an identifier
 	 */
 	public boolean isIdentifier(String str) {
-		// TODO: Implement the recognition of identifiers 
-		String letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-		String all = letters + "0123456789_";
-		if(!str.contains(String.valueOf(str.charAt(0)))) {
+		// TODO: Implement the recognition of identifiers
+		char c = str.charAt(0);
+		if(!(c>='a' && c<='z') && !(c>='A' && c<='Z') && (c!='_')) {
 			return false;
 		}
 		for(int i=1; i<str.length(); i++) {
-			if(!all.contains(String.valueOf(str.charAt(0)))) {
-                        return false;
-                	}
+			c = str.charAt(i);
+			if(!(c>='a' && c<='z') && !(c>='A' && c<='Z') && (c!='_') && !isDigit(c)) {
+				return false;
+			}
 		}
 		return true;
 	}
@@ -172,8 +166,6 @@ public class RegularExpressions {
 		// Check to see if we start with //
 		if(ch == '/' && str.length() > 1) {
 			// if the second character is / and we end with newline
-			System.out.println(str+" : "+(str.charAt(str.length()-1) == '\n'));
-			//System.out.println(str+" "+str.charAt(1)=='/'+" "+str.charAt(str.length()-1)+":"+(str.charAt(str.length() -1) == '\n'));
 			if(str.charAt(1) == '/' && str.charAt(str.length() -1) == '\n') {
 				return true;
 			}
