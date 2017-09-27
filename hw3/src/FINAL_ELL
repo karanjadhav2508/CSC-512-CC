@@ -1,0 +1,160 @@
+
+<program_start>              --> <program> eof                     FIRST_PLUS = { binary decimal int void }
+                               | eof                     FIRST_PLUS = { eof }
+
+<program>                    --> <type_name> ID <program_0>                     FIRST_PLUS = { binary decimal int void }
+
+<type_name>                  --> int                     FIRST_PLUS = { int }
+                               | void                     FIRST_PLUS = { void }
+                               | binary                     FIRST_PLUS = { binary }
+                               | decimal                     FIRST_PLUS = { decimal }
+
+<program_0>                  --> <id_0> <id_list_0> semicolon <program_1>                     FIRST_PLUS = { comma left_bracket semicolon }
+                               | left_parenthesis <func_0> <func_path>                     FIRST_PLUS = { left_parenthesis }
+
+<id_0>                       --> left_bracket <expression> right_bracket                     FIRST_PLUS = { left_bracket }
+                               | EPSILON                     FIRST_PLUS = { EPSILON comma semicolon }
+
+<id_list_0>                  --> comma <id> <id_list_0>                     FIRST_PLUS = { comma }
+                               | EPSILON                     FIRST_PLUS = { EPSILON semicolon }
+
+<program_1>                  --> <type_name> ID <func_or_data>                     FIRST_PLUS = { binary decimal int void }
+                               | EPSILON                     FIRST_PLUS = { EPSILON eof }
+
+<func_0>                     --> <parameter_list> right_parenthesis <func_1>                     FIRST_PLUS = { binary decimal int void }
+                               | right_parenthesis <func_4>                     FIRST_PLUS = { right_parenthesis }
+
+<func_path>                  --> <func_list>                     FIRST_PLUS = { binary decimal int void }
+                               | EPSILON                     FIRST_PLUS = { EPSILON eof }
+
+<expression>                 --> <factor> <term_0> <expression_0>                     FIRST_PLUS = { ID NUMBER left_parenthesis minus_sign }
+
+<id>                         --> ID <id_0>                     FIRST_PLUS = { ID }
+
+<func_or_data>               --> <id_0> <id_list_0> semicolon <program_1>                     FIRST_PLUS = { comma left_bracket semicolon }
+                               | left_parenthesis <func_0> <func_list_0>                     FIRST_PLUS = { left_parenthesis }
+
+<parameter_list>             --> void <parameter_list_0>                     FIRST_PLUS = { void }
+                               | int ID <non_empty_list_0>                     FIRST_PLUS = { int }
+                               | decimal ID <non_empty_list_0>                     FIRST_PLUS = { decimal }
+                               | binary ID <non_empty_list_0>                     FIRST_PLUS = { binary }
+
+<func_1>                     --> semicolon                     FIRST_PLUS = { semicolon }
+                               | left_brace <func_2>                     FIRST_PLUS = { left_brace }
+
+<func_4>                     --> semicolon                     FIRST_PLUS = { semicolon }
+                               | left_brace <func_5>                     FIRST_PLUS = { left_brace }
+
+<func_list>                  --> <func> <func_list_0>                     FIRST_PLUS = { binary decimal int void }
+
+<factor>                     --> ID <factor_0>                     FIRST_PLUS = { ID }
+                               | NUMBER                     FIRST_PLUS = { NUMBER }
+                               | minus_sign NUMBER                     FIRST_PLUS = { minus_sign }
+                               | left_parenthesis <expression> right_parenthesis                     FIRST_PLUS = { left_parenthesis }
+
+<term_0>                     --> <mulop> <factor> <term_0>                     FIRST_PLUS = { forward_slash star_sign }
+                               | EPSILON                     FIRST_PLUS = { != < <= == > >= EPSILON comma double_and_sign double_or_sign minus_sign plus_sign right_bracket right_parenthesis semicolon }
+
+<expression_0>               --> <addop> <term> <expression_0>                     FIRST_PLUS = { minus_sign plus_sign }
+                               | EPSILON                     FIRST_PLUS = { != < <= == > >= EPSILON comma double_and_sign double_or_sign right_bracket right_parenthesis semicolon }
+
+<func_list_0>                --> <func_list>                     FIRST_PLUS = { binary decimal int void }
+                               | EPSILON                     FIRST_PLUS = { EPSILON eof }
+
+<parameter_list_0>           --> ID <non_empty_list_0>                     FIRST_PLUS = { ID }
+                               | EPSILON                     FIRST_PLUS = { EPSILON right_parenthesis }
+
+<non_empty_list_0>           --> comma <type_name> ID <non_empty_list_0>                     FIRST_PLUS = { comma }
+                               | EPSILON                     FIRST_PLUS = { EPSILON right_parenthesis }
+
+<func_2>                     --> <data_decls> <func_3>                     FIRST_PLUS = { binary decimal int void }
+                               | <statements> right_brace                     FIRST_PLUS = { ID break continue if print read return while write }
+                               | right_brace                     FIRST_PLUS = { right_brace }
+
+<func_5>                     --> <data_decls> <func_6>                     FIRST_PLUS = { binary decimal int void }
+                               | <statements> right_brace                     FIRST_PLUS = { ID break continue if print read return while write }
+                               | right_brace                     FIRST_PLUS = { right_brace }
+
+<func>                       --> <type_name> ID left_parenthesis <func_0>                     FIRST_PLUS = { binary decimal int void }
+
+<factor_0>                   --> left_bracket <expression> right_bracket                     FIRST_PLUS = { left_bracket }
+                               | left_parenthesis <factor_1>                     FIRST_PLUS = { left_parenthesis }
+                               | EPSILON                     FIRST_PLUS = { != < <= == > >= EPSILON comma double_and_sign double_or_sign forward_slash minus_sign plus_sign right_bracket right_parenthesis semicolon star_sign }
+
+<mulop>                      --> star_sign                     FIRST_PLUS = { star_sign }
+                               | forward_slash                     FIRST_PLUS = { forward_slash }
+
+<addop>                      --> plus_sign                     FIRST_PLUS = { plus_sign }
+                               | minus_sign                     FIRST_PLUS = { minus_sign }
+
+<term>                       --> <factor> <term_0>                     FIRST_PLUS = { ID NUMBER left_parenthesis minus_sign }
+
+<data_decls>                 --> <type_name> <id_list> semicolon <data_decls_0>                     FIRST_PLUS = { binary decimal int void }
+
+<func_3>                     --> <statements> right_brace                     FIRST_PLUS = { ID break continue if print read return while write }
+                               | right_brace                     FIRST_PLUS = { right_brace }
+
+<statements>                 --> <statement> <statements_0>                     FIRST_PLUS = { ID break continue if print read return while write }
+
+<func_6>                     --> <statements> right_brace                     FIRST_PLUS = { ID break continue if print read return while write }
+                               | right_brace                     FIRST_PLUS = { right_brace }
+
+<factor_1>                   --> <expr_list> right_parenthesis                     FIRST_PLUS = { ID NUMBER left_parenthesis minus_sign }
+                               | right_parenthesis                     FIRST_PLUS = { right_parenthesis }
+
+<id_list>                    --> <id> <id_list_0>                     FIRST_PLUS = { ID }
+
+<data_decls_0>               --> <data_decls>                     FIRST_PLUS = { binary decimal int void }
+                               | EPSILON                     FIRST_PLUS = { EPSILON ID break continue if print read return right_brace while write }
+
+<statement>                  --> ID <statement_0>                     FIRST_PLUS = { ID }
+                               | if left_parenthesis <condition_expression> right_parenthesis <block_statements>                     FIRST_PLUS = { if }
+                               | while left_parenthesis <condition_expression> right_parenthesis <block_statements>                     FIRST_PLUS = { while }
+                               | return <statement_2>                     FIRST_PLUS = { return }
+                               | break semicolon                     FIRST_PLUS = { break }
+                               | continue semicolon                     FIRST_PLUS = { continue }
+                               | read left_parenthesis ID right_parenthesis semicolon                     FIRST_PLUS = { read }
+                               | write left_parenthesis <expression> right_parenthesis semicolon                     FIRST_PLUS = { write }
+                               | print left_parenthesis STRING right_parenthesis semicolon                     FIRST_PLUS = { print }
+
+<statements_0>               --> <statements>                     FIRST_PLUS = { ID break continue if print read return while write }
+                               | EPSILON                     FIRST_PLUS = { EPSILON right_brace }
+
+<expr_list>                  --> <non_empty_expr_list>                     FIRST_PLUS = { ID NUMBER left_parenthesis minus_sign }
+
+<statement_0>                --> equal_sign <expression> semicolon                     FIRST_PLUS = { equal_sign }
+                               | left_bracket <expression> right_bracket equal_sign <expression> semicolon                     FIRST_PLUS = { left_bracket }
+                               | left_parenthesis <statement_1>                     FIRST_PLUS = { left_parenthesis }
+
+<condition_expression>       --> <condition> <condition_expression_0>                     FIRST_PLUS = { ID NUMBER left_parenthesis minus_sign }
+
+<block_statements>           --> left_brace <block_statements_0>                     FIRST_PLUS = { left_brace }
+
+<statement_2>                --> <expression> semicolon                     FIRST_PLUS = { ID NUMBER left_parenthesis minus_sign }
+                               | semicolon                     FIRST_PLUS = { semicolon }
+
+<non_empty_expr_list>        --> <expression> <non_empty_expr_list_0>                     FIRST_PLUS = { ID NUMBER left_parenthesis minus_sign }
+
+<statement_1>                --> <expr_list> right_parenthesis semicolon                     FIRST_PLUS = { ID NUMBER left_parenthesis minus_sign }
+                               | right_parenthesis semicolon                     FIRST_PLUS = { right_parenthesis }
+
+<condition>                  --> <expression> <comparison_op> <expression>                     FIRST_PLUS = { ID NUMBER left_parenthesis minus_sign }
+
+<condition_expression_0>     --> <condition_op> <condition>                     FIRST_PLUS = { double_and_sign double_or_sign }
+                               | EPSILON                     FIRST_PLUS = { EPSILON right_parenthesis }
+
+<block_statements_0>         --> <statements> right_brace                     FIRST_PLUS = { ID break continue if print read return while write }
+                               | right_brace                     FIRST_PLUS = { right_brace }
+
+<non_empty_expr_list_0>      --> comma <expression> <non_empty_expr_list_0>                     FIRST_PLUS = { comma }
+                               | EPSILON                     FIRST_PLUS = { EPSILON right_parenthesis }
+
+<comparison_op>              --> ==                     FIRST_PLUS = { == }
+                               | !=                     FIRST_PLUS = { != }
+                               | >                     FIRST_PLUS = { > }
+                               | >=                     FIRST_PLUS = { >= }
+                               | <                     FIRST_PLUS = { < }
+                               | <=                     FIRST_PLUS = { <= }
+
+<condition_op>               --> double_and_sign                     FIRST_PLUS = { double_and_sign }
+                               | double_or_sign                     FIRST_PLUS = { double_or_sign }
