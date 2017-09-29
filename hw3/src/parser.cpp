@@ -352,19 +352,11 @@ bool Parser::program_0(void) {
 
   // Add Code Here
 
-  #ifdef DEBUG
-
-  std::cout << "<program_0>" << std::endl;
-
-  #endif
-
   if(check_first_plus_set(current_word, FirstPlus::program_0_p0)) {
     if(id_0()) {
       ++variable_count;
       if(id_list_0()) {
         if((current_word.get_token_type()==TokenType::SYMBOL) && (current_word.get_token_name()==";")) {
-          ++statement_count;
-          std::cout << "<program_0>" << statement_count << std::endl;
           if(get_next_word()) {
             if(program_1()) {
               return(true);
@@ -1780,18 +1772,11 @@ bool Parser::statement(void) {
 
   // Add Code here
 
-  #ifdef DEBUG
-
-  std::cout << "<statement>" << std::endl;
-
-  #endif
-
   if(check_first_plus_set(current_word, FirstPlus::statement_p0)) {
     if(current_word.get_token_type()==TokenType::IDENTIFIER) {
       if(get_next_word()) {
         if(statement_0()) {
           ++statement_count;
-          std::cout << "<statement_p0>" << statement_count << std::endl;
           return(true);
         }
       }    
@@ -1803,6 +1788,7 @@ bool Parser::statement(void) {
           if(get_next_word()) {
             if(condition_expression()) {
               if((current_word.get_token_type()==TokenType::SYMBOL) && (current_word.get_token_name()==")")) {
+                ++statement_count;
                 if(get_next_word()) {
                   if(block_statements()) {
                     return(true);
@@ -1821,6 +1807,7 @@ bool Parser::statement(void) {
           if(get_next_word()) {
             if(condition_expression()) {
               if((current_word.get_token_type()==TokenType::SYMBOL) && (current_word.get_token_name()==")")) {
+                ++statement_count;
                 if(get_next_word()) {
                   if(block_statements()) {
                     return(true);
@@ -1837,7 +1824,6 @@ bool Parser::statement(void) {
       if(get_next_word()) {
         if(statement_2()) {
           ++statement_count;
-          std::cout << "<statement_p3>" << statement_count << std::endl;
           return(true);
         }
       }
@@ -1858,7 +1844,6 @@ bool Parser::statement(void) {
       if(get_next_word()) {
         if((current_word.get_token_type()==TokenType::SYMBOL) && (current_word.get_token_name()==";")) {
           ++statement_count;
-          std::cout << "<statement_p5>" << statement_count << std::endl;
           if(get_next_word()) {
             return(true);
           }
@@ -1876,7 +1861,6 @@ bool Parser::statement(void) {
                   if(get_next_word()) {
                     if((current_word.get_token_type()==TokenType::SYMBOL) && (current_word.get_token_name()==";")) {
                       ++statement_count;
-                      std::cout << "<statement_p6>" << statement_count << std::endl;
                       if(get_next_word()) {
                         return(true);
                       }
@@ -1899,7 +1883,6 @@ bool Parser::statement(void) {
                 if(get_next_word()) {
                   if((current_word.get_token_type()==TokenType::SYMBOL) && (current_word.get_token_name()==";")) {
                     ++statement_count;
-                    std::cout << "<statement_p7>" << statement_count << std::endl;
                     if(get_next_word()) {
                       return(true);
                     }
@@ -1922,7 +1905,6 @@ bool Parser::statement(void) {
                   if(get_next_word()) {
                     if((current_word.get_token_type()==TokenType::SYMBOL) && (current_word.get_token_name()==";")) {
                       ++statement_count;
-                      std::cout << "<statement_p8>" << statement_count << std::endl;
                       if(get_next_word()) {
                         return(true);
                       }
