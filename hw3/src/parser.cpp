@@ -351,10 +351,19 @@ bool Parser::program_0(void) {
   //                                | left_parenthesis <func_0> <func_path>                     FIRST_PLUS = { left_parenthesis }
 
   // Add Code Here
+
+  #ifdef DEBUG
+
+  std::cout << "<program_0>" << std::endl;
+
+  #endif
+
   if(check_first_plus_set(current_word, FirstPlus::program_0_p0)) {
     if(id_0()) {
+      ++variable_count;
       if(id_list_0()) {
         if((current_word.get_token_type()==TokenType::SYMBOL) && (current_word.get_token_name()==";")) {
+          //++statement_count;
           if(get_next_word()) {
             if(program_1()) {
               return(true);
@@ -364,7 +373,15 @@ bool Parser::program_0(void) {
       }
     }
   } else if(check_first_plus_set(current_word, FirstPlus::program_0_p1)) {
-    return(true);
+    if((current_word.get_token_type()==TokenType::SYMBOL) && (current_word.get_token_name()=="(")) {
+      if(get_next_word()) {
+        if(func_0()) {
+          if(func_path()) {
+            return(true);
+          }
+        }
+      }
+    }
   }
 
   fail_state = true;
@@ -1761,10 +1778,18 @@ bool Parser::statement(void) {
 
 
   // Add Code here
+
+  #ifdef DEBUG
+
+  std::cout << "<statement>" << std::endl;
+
+  #endif
+
   if(check_first_plus_set(current_word, FirstPlus::statement_p0)) {
     if(current_word.get_token_type()==TokenType::IDENTIFIER) {
-      if(get_current_word()) {
+      if(get_next_word()) {
         if(statement_0()) {
+          //++statement_count;
           return(true);
         }
       }    
@@ -1809,6 +1834,7 @@ bool Parser::statement(void) {
     if((current_word.get_token_type()==TokenType::RESERVED_WORD) && (current_word.get_token_name()=="return")) {
       if(get_next_word()) {
         if(statement_2()) {
+          //++statement_count;
           return(true);
         }
       }
@@ -1817,6 +1843,7 @@ bool Parser::statement(void) {
     if((current_word.get_token_type()==TokenType::RESERVED_WORD) && (current_word.get_token_name()=="break")) {
       if(get_next_word()) {
         if((current_word.get_token_type()==TokenType::SYMBOL) && (current_word.get_token_name()==";")) {
+	  //++statement_count;
           if(get_next_word()) {
             return(true);
           }
@@ -1827,6 +1854,7 @@ bool Parser::statement(void) {
     if((current_word.get_token_type()==TokenType::RESERVED_WORD) && (current_word.get_token_name()=="continue")) {
       if(get_next_word()) {
         if((current_word.get_token_type()==TokenType::SYMBOL) && (current_word.get_token_name()==";")) {
+          //++statement_count;
           if(get_next_word()) {
             return(true);
           }
@@ -1843,6 +1871,7 @@ bool Parser::statement(void) {
                 if((current_word.get_token_type()==TokenType::SYMBOL) && (current_word.get_token_name()==")")) {
                   if(get_next_word()) {
                     if((current_word.get_token_type()==TokenType::SYMBOL) && (current_word.get_token_name()==";")) {
+                      //++statement_count;
                       if(get_next_word()) {
                         return(true);
                       }
@@ -1864,6 +1893,7 @@ bool Parser::statement(void) {
               if((current_word.get_token_type()==TokenType::SYMBOL) && (current_word.get_token_name()==")")) {
                 if(get_next_word()) {
                   if((current_word.get_token_type()==TokenType::SYMBOL) && (current_word.get_token_name()==";")) {
+                    //++statement_count;
                     if(get_next_word()) {
                       return(true);
                     }
@@ -1885,6 +1915,7 @@ bool Parser::statement(void) {
                 if((current_word.get_token_type()==TokenType::SYMBOL) && (current_word.get_token_name()==")")) {
                   if(get_next_word()) {
                     if((current_word.get_token_type()==TokenType::SYMBOL) && (current_word.get_token_name()==";")) {
+                      //++statement_count;
                       if(get_next_word()) {
                         return(true);
                       }

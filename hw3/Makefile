@@ -10,14 +10,13 @@ OBJS = ${OBJECTS_DIR}/first_plus.o \
        $(OBJECTS_DIR)/parse_main.o 
 
 ifeq ($(DEBUG),1)
-
   DEBUG_FLAGS = -DDEBUG
 
 else
-
   DEBUG_FLAGS =
 
 endif
+
 
 CC=/usr/bin/g++-4.8
 CC_OPTS=-O3 -std=c++11 -I $(INCLUDE_DIR) $(DEBUG_FLAGS) -c
