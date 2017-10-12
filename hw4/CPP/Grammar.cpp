@@ -728,7 +728,7 @@ bool Grammar::assignment(std::string idName)
 	{
 		if(typeName(dataType))
 		{
-			if(id(datatype) && (parse->curToken()->getSymType() == Token::SYMTYPE_DOUBLE_EQUAL) && parse->nextToken()) 
+			if(id(dataType) && (parse->curToken()->getSymType() == Token::SYMTYPE_DOUBLE_EQUAL) && parse->nextToken()) 
 			{
 				if(operand(&root))
 				{
@@ -840,7 +840,7 @@ bool Grammar::nonEmptyExprListPrime(std::queue<std::string> &arguments)
 	return true;
 }
 
-bool operand(ASTNode **root) {
+bool Grammar::operand(ASTNode **root) {
 	std::string dataType;
 	if(parse->curToken()) {
 		//NUMBER
