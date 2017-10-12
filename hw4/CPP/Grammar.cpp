@@ -722,9 +722,35 @@ bool Grammar::assignment(std::string idName)
 	*/
 	/*std::cout << "assignment" << std::endl;*/
 	//TODO: Add Code Here
+	std::string dataType;
+	ASTNode *root = NULL;
 	if (parse->curToken())
 	{
-		
+		if(typeName(dataType))
+		{
+			if(id(datatype) && (parse->curToken()->getSymType() == Token::SYMTYPE_DOUBLE_EQUAL) && parse->nextToken()) 
+			{
+				if(operand(&root))
+				{
+					if((addOp(&root) || mulOp(&root) || comparisionOp(&root) || conditionOp(&root)) && 
+						parse->curToken() && (parse->curToken()->getSymType() == Token::SYMTYPE_SEMICOLON))
+					{
+						parse->nextToken();
+						return true;
+					}
+					else if(parse->curToken() && (parse->curToken()->getSymType() == Token::SYMTYPE_SEMICOLON))
+					{
+						parse->nextToken();
+						return true;
+					}
+				}
+				else if(operand(&root))
+				{
+					parse->nextToken();
+					return true;
+				}
+			}
+		}
 	}
 	return false;
 }
@@ -867,7 +893,7 @@ bool Grammar::ifStatement()
 		&& parse->curToken()->getSymType() == Token::SYMTYPE_LEFT_PARENTHESIS
 		&& parse->nextToken() 
 		&& operand(&root) 
-		&& (comparisionOp(root) || conditionOp(root)) 
+		&& (comparisionOp(&root) || conditionOp(&root)) 
 		&& operand(&root) 
 		&& parse->curToken() 
 		&& parse->curToken()->getSymType() == Token::SYMTYPE_RIGHT_PARENTHESIS)
