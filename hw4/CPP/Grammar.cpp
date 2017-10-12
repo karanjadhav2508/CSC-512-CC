@@ -809,6 +809,37 @@ bool Grammar::nonEmptyExprListPrime(std::queue<std::string> &arguments)
 	return true;
 }
 
+bool operand(ASTNode **root) {
+	if(parse->curToken()) {
+		//NUMBER
+		if (parse->curToken()->getID() == Token::IDTYPE_NUMBER)
+		{
+			*root = new ASTNode(parse->curToken()->getTokenName(), ASTNode::NUMBER);
+			parse->nextToken();
+			return true;
+		}
+		//minus_sign NUMBER
+		else if (parse->curToken()->getSymType() == Token::SYMTYPE_MINUS)
+		{
+			if (parse->nextToken()
+				&& parse->curToken()->getID() == Token::IDTYPE_NUMBER)
+			{
+				std::string number;
+				number.push_back('-');
+				number.append(parse->curToken()->getTokenName());
+				*root = new ASTNode(number, ASTNode::NUMBER);
+				parse->nextToken();
+				return true;
+			}
+			//no token after minus_sign or if present, not a NUMBER
+			return false;
+		}
+		
+	}
+	//no current token
+	return false;
+}
+
 bool Grammar::ifStatement()
 {
 	/**
@@ -816,6 +847,21 @@ bool Grammar::ifStatement()
 	*/
 	/*std::cout << "ifStatement" << std::endl;*/
 	//TODO: Add Code Here
+	ASTNode *root = NULL;
+	//check till: if left_paranthesis(including next token)
+	if(parse->curToken() 
+		&& parse->curToken()->getID() == Token::IDTYPE_RESERVEDWORD 
+		&& !strcmp(parse->curToken()->getTokenName().c_str(), "if") 
+		&& parse->nextToken()  
+		&& parse->curToken()->getSymType() == Token::SYMTYPE_LEFT_PARENTHESIS
+		&& parse->nextToken() 
+		&&operand(&root) 
+		&& parse->curToken() 
+		&& parse->curToken()->getSymType() == Token::SYMTYPE_RIGHT_PARENTHESIS)
+	{
+		//rest of it later...	
+	}
+		
 }
 
 bool Grammar::conditionExpression(ASTNode **root)
