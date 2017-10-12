@@ -864,22 +864,28 @@ bool Grammar::ifStatement()
 		&& (comparisionOp(root) || conditionOp(root)) 
 		&& parse->curToken()->getSymType() == Token::SYMTYPE_RIGHT_PARENTHESIS)
 	{
+		//get label numbers
 		parse->evaluateASTTree(root);
 		int loopLable = parse->getSymbolTable()->lableCnt++;
 		int thenLable = parse->getSymbolTable()->lableCnt++;
 		int endLable = parse->getSymbolTable()->lableCnt++;
 		
-		std::string loopLableStmt("c");
-		loopLableStmt.append(Util::to_string(loopLable));
-		loopLableStmt.append(":;");
-		parse->getSymbolTable()->curFunction->funcStats.push(loopLableStmt);
-
+		//if(...) goto cx; goto c(x+1); cx:
 		Util::printIfStmt(parse->getSymbolTable(), root, thenLable, endLable);
-
 		delete root;
-		parse->getSymbolTable()->curFunction->whileLables.push(std::pair<int, int>(loopLable, endLable));
-		parse->nextToken();		
+		parse->nextToken();
+
+		if(blockStatements())
+		{
+			//c(x+1):;
+               		std::string endLableStmt("c");
+                	endLableStmt.append(Util::to_string(endLable));
+                	endLableStmt.append(":;");
+                	parse->getSymbolTable()->curFunction->funcStats.push(endLableStmt);
+			return true;
+		}
 	}
+	return false;
 }
 
 bool Grammar::conditionExpression(ASTNode **root)
