@@ -855,7 +855,7 @@ bool Grammar::ifStatement()
 		&& parse->nextToken()  
 		&& parse->curToken()->getSymType() == Token::SYMTYPE_LEFT_PARENTHESIS
 		&& parse->nextToken() 
-		&&operand(&root) 
+		&& operand(&root) 
 		&& parse->curToken() 
 		&& parse->curToken()->getSymType() == Token::SYMTYPE_RIGHT_PARENTHESIS)
 	{
