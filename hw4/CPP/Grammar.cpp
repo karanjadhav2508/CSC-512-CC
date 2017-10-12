@@ -834,6 +834,10 @@ bool operand(ASTNode **root) {
 			//no token after minus_sign or if present, not a NUMBER
 			return false;
 		}
+		//we can assume only int type, so we check if tokenname is int
+		else if (!strcmp(parse->curToken()->getTokenName().c_str(), "int")) {
+			return id("int");
+		}
 		
 	}
 	//no current token
@@ -855,13 +859,27 @@ bool Grammar::ifStatement()
 		&& parse->nextToken()  
 		&& parse->curToken()->getSymType() == Token::SYMTYPE_LEFT_PARENTHESIS
 		&& parse->nextToken() 
-		&& operand(&root) 
+		&& operand(root) 
 		&& parse->curToken() 
+		&& (comparisionOp(root) || conditionOp(root)) 
 		&& parse->curToken()->getSymType() == Token::SYMTYPE_RIGHT_PARENTHESIS)
 	{
-		//rest of it later...	
-	}
+		parse->evaluateASTTree(root);
+		int loopLable = parse->getSymbolTable()->lableCnt++;
+		int thenLable = parse->getSymbolTable()->lableCnt++;
+		int endLable = parse->getSymbolTable()->lableCnt++;
 		
+		std::string loopLableStmt("c");
+		loopLableStmt.append(Util::to_string(loopLable));
+		loopLableStmt.append(":;");
+		parse->getSymbolTable()->curFunction->funcStats.push(loopLableStmt);
+
+		Util::printIfStmt(parse->getSymbolTable(), root, thenLable, endLable);
+
+		delete root;
+		parse->getSymbolTable()->curFunction->whileLables.push(std::pair<int, int>(loopLable, endLable));
+		parse->nextToken();		
+	}
 }
 
 bool Grammar::conditionExpression(ASTNode **root)
