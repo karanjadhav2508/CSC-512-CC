@@ -722,6 +722,11 @@ bool Grammar::assignment(std::string idName)
 	*/
 	/*std::cout << "assignment" << std::endl;*/
 	//TODO: Add Code Here
+	if (parse->curToken())
+	{
+		
+	}
+	return false;
 }
 
 bool Grammar::funcCall(std::string idName)
@@ -810,6 +815,7 @@ bool Grammar::nonEmptyExprListPrime(std::queue<std::string> &arguments)
 }
 
 bool operand(ASTNode **root) {
+	std::string dataType;
 	if(parse->curToken()) {
 		//NUMBER
 		if (parse->curToken()->getID() == Token::IDTYPE_NUMBER)
@@ -835,10 +841,11 @@ bool operand(ASTNode **root) {
 			return false;
 		}
 		//we can assume only int type, so we check if tokenname is int
-		else if (!strcmp(parse->curToken()->getTokenName().c_str(), "int")) {
-			return id("int");
-		}
-		
+		else {
+			if(typeName(dataType)) {
+				return if(dataType);
+			}
+		}	
 	}
 	//no current token
 	return false;
@@ -859,9 +866,10 @@ bool Grammar::ifStatement()
 		&& parse->nextToken()  
 		&& parse->curToken()->getSymType() == Token::SYMTYPE_LEFT_PARENTHESIS
 		&& parse->nextToken() 
-		&& operand(root) 
-		&& parse->curToken() 
+		&& operand(&root) 
 		&& (comparisionOp(root) || conditionOp(root)) 
+		&& operand(&root) 
+		&& parse->curToken() 
 		&& parse->curToken()->getSymType() == Token::SYMTYPE_RIGHT_PARENTHESIS)
 	{
 		//get label numbers
