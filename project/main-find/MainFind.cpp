@@ -29,59 +29,17 @@ static cl::extrahelp CommonHelp(CommonOptionsParser::HelpMessage);
 // A help message for this specific tool can be added afterwards.
 static cl::extrahelp MoreHelp("\nMore help text...");
 
-std::string mot_out;
-	  
-class ForLoopPrinter : public MatchFinder::MatchCallback {
-public :
-  virtual void run(const MatchFinder::MatchResult &Result) {
-    printf("------- A For Loop ----------\n");
-    if (const ForStmt *FS = Result.Nodes.getNodeAs<clang::ForStmt>("forLoop"))
-      FS->dump();
-  }
-};
-
-class ForLoopSIPrinter : public MatchFinder::MatchCallback {
-public :
-  virtual void run(const MatchFinder::MatchResult &Result) {
-    printf("------- A For Loop w/ Single Init----------\n");
-    if (const ForStmt *FS = Result.Nodes.getNodeAs<clang::ForStmt>("forLoopSI"))
-      FS->dump();
-  }
-};
-
-class ForLoopCallPrinter : public MatchFinder::MatchCallback {
-public :
-  virtual void run(const MatchFinder::MatchResult &Result) {
-    printf("------- A For Loop w/ Calls----------\n");
-    if (const ForStmt *FS = Result.Nodes.getNodeAs<clang::ForStmt>("callInLoop"))
-      FS->dump();
-  }
-};
-
 class MainFuncDefPrinter : public MatchFinder::MatchCallback {
 public :
   virtual void run(const MatchFinder::MatchResult &Result) {
     const FunctionDecl *m = Result.Nodes.getNodeAs<clang::FunctionDecl>("mainFunc");
-    if(m->isMain())
-    {
-      cout << "---MAIN---" << endl;
-      llvm::iterator_range<clang::StmtIterator> mainIterator = m->getBody()->children();
-      StmtIterator s;
-      for(s = mainIterator.begin(); s != mainIterator.end(); s++) {
-        if(isa<ExprWithCleanups>(*s))
-	  (*s)->child_begin()->dumpColor();
-      }
-    } else {
-      cout << "--OTHER-- " <<m->getNameInfo().getName().getAsString() << endl;
+    cout << m->getNameInfo().getName().getAsString() << endl;
+    llvm::iterator_range<clang::StmtIterator> mainIterator = m->getBody()->children();
+    StmtIterator s;
+    for(s = mainIterator.begin(); s != mainIterator.end(); s++) {
+      if(isa<ExprWithCleanups>(*s))
+        (*s)->child_begin()->dumpColor();
     }
-  }
-};
-
-class CudaCallPrinter : public MatchFinder::MatchCallback {
-public :
-  virtual void run(const MatchFinder::MatchResult &Result) {
-  printf("------- A CUDA Kernel Call ----------\n");
-  //if (const Stmt *S = Result.Nodes.getNodeAs<clang::Stmt>("cudaCall")) {}
   }
 };
 
@@ -98,7 +56,6 @@ public:
     //Finder.addMatcher(ForLoopMatcher_withSI, &ForSIPrinter);
     //Finder.addMatcher(ForLoopMatcher_withCall, &ForCallPrinter);
     Finder.addMatcher(MainFuncMatcher, &MainFuncPrinter);
-    Finder.addMatcher(CudaCallMatcher, &cudaPrinter);
   }
   void HandleTranslationUnit(ASTContext &Context) override {
     // Run the matchers when we have the whole TU parsed.
@@ -106,20 +63,8 @@ public:
   }
 
 private:
-  ForLoopPrinter ForPrinter;
-  ForLoopSIPrinter ForSIPrinter;
-  ForLoopCallPrinter ForCallPrinter;
   MainFuncDefPrinter MainFuncPrinter;
-  CudaCallPrinter cudaPrinter;
-  StatementMatcher ForLoopMatcher= forStmt(hasLoopInit(declStmt(hasSingleDecl(varDecl(hasName("i")))))).bind("forLoop");
-  StatementMatcher ForLoopMatcher_withSI=
-      forStmt(hasLoopInit(declStmt(hasSingleDecl(varDecl(hasInitializer(integerLiteral(equals(0)))))))).bind("forLoopSI");
-  StatementMatcher ForLoopMatcher_withCall=
-      forStmt(hasBody(compoundStmt(has(callExpr())))).bind("callInLoop");
-  //main
   DeclarationMatcher MainFuncMatcher = functionDecl(hasBody(compoundStmt(has(exprWithCleanups(has(cudaKernelCallExpr())))))).bind("mainFunc");
-  //kernel
-  StatementMatcher CudaCallMatcher= cudaKernelCallExpr().bind("cudaCall");
   MatchFinder Finder;
 };
 
