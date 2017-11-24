@@ -33,73 +33,63 @@ int flag = 0;
 Stmt *childBody;
 std::vector<const FunctionDecl *> kernelFuncs;
 
-clang::FunctionDecl * hasCudaKernelCallExpr(Stmt *s) {
-  return NULL;
-}	
-
-class ParentKernelFuncDefPrinter : public MatchFinder::MatchCallback {
-public :
-  virtual void run(const MatchFinder::MatchResult &Result) {
-    const FunctionDecl *m = Result.Nodes.getNodeAs<clang::FunctionDecl>("parentKernelFunc");
-    cout << "PARENT : " << m->getNameInfo().getName().getAsString() << endl;
-    iterator_range<StmtIterator> stmts = m->getBody()->children();
-    for(StmtIterator s = stmts.begin(); s != stmts.end(); s++) {
-      if(*s != NULL && isa<IfStmt>(*s)) {
-        iterator_range<StmtIterator> ifOneChildren = s->children();
-	for(StmtIterator ifOneChild = ifOneChildren.begin(); ifOneChild != ifOneChildren.end(); ifOneChild++) {
-          if(*ifOneChild != NULL && isa<CompoundStmt>(*ifOneChild)) {
-            iterator_range<StmtIterator> csOneChildren = ifOneChild->children();
-	    for(StmtIterator csOneChild = csOneChildren.begin(); csOneChild != csOneChildren.end(); csOneChild++) {
-              if(*csOneChild != NULL && isa<IfStmt>(*csOneChild)) {
-	        iterator_range<StmtIterator> ifTwoChildren = csOneChild->children();
-		for(StmtIterator ifTwoChild = ifTwoChildren.begin(); ifTwoChild != ifTwoChildren.end(); ifTwoChild++) {
-		  if(*ifTwoChild != NULL && isa<CompoundStmt>(*ifTwoChild)) {
-		    iterator_range<StmtIterator> csTwoChildren = ifTwoChild->children();
-		    for(StmtIterator csTwoChild = csTwoChildren.begin(); csTwoChild != csTwoChildren.end(); csTwoChild++) {
-		      if(*csTwoChild != NULL && isa<ExprWithCleanups>(*csTwoChild)) {
-		        iterator_range<StmtIterator> ewcChildren = csTwoChild->children();
-			for(StmtIterator ewcChild = ewcChildren.begin(); ewcChild != ewcChildren.end(); ewcChild++) {
-			  if(*ewcChild != NULL && isa<CUDAKernelCallExpr>(*ewcChild)) {
-			    //ewcChild->dumpColor();
-			  }
-			}
-		      }
-		    }
-		  }
-		}
-	      }
-	    }
-          }
-        }
+clang::CUDAKernelCallExpr * hasCudaKernelCallExpr(Stmt *s) {
+  Stmt * ckce;
+  iterator_range<StmtIterator> s_children = s->children();
+  for(StmtIterator child = s_children.begin(); child != s_children.end(); child++) {
+    if(*child != NULL) {
+      if(isa<CUDAKernelCallExpr>(*child)) {
+	return (CUDAKernelCallExpr*) *child;
+      }
+      ckce = hasCudaKernelCallExpr(*child);
+      if(ckce != NULL && isa<CUDAKernelCallExpr>(ckce)) {
+	return (CUDAKernelCallExpr*) ckce;
       }
     }
-    for(std::vector<const FunctionDecl *>::iterator it = kernelFuncs.begin(); it != kernelFuncs.end(); it++) {
-      cout << "kernelFuncs : " << (*it)->getNameInfo().getName().getAsString() << endl;
+  }
+  return NULL;
+}
+
+std::string getCudaKernelCallExprName(Stmt *c) {
+  for(StmtIterator child = c_children.begin(); child != c_children.end(); child++) {
+    if(*child != NULL) {
+      if(isa<DeclRefExpr>(*child)) {
+        return ((DeclRefExpr*) *child)->getNameInfo().getName().getAsString();
+      }
+      ckceName = getCudaKernelCallExprName(*child);
+      if(ckceName != "") {
+        return ckceName;
+      }
     }
   }
-};
+  return "";
+}
 
 class KernelFuncDefPrinter : public MatchFinder::MatchCallback {
 public :
   virtual void run(const MatchFinder::MatchResult &Result) {
-    const FunctionDecl *m = Result.Nodes.getNodeAs<clang::FunctionDecl>("kernelFunc");
-    kernelFuncs.push_back(m);
+    const FunctionDecl *kf = Result.Nodes.getNodeAs<clang::FunctionDecl>("kernelFunc");
+    CUDAKernelCallExpr *ck = hasCudaKernelCallExpr(kf->getBody());
+    if(ck == NULL) {
+      kernelFuncs.push_back(kf);
+    }
+    else {
+      cout << "PARENT : " << kf->getNameInfo().getName().getAsString() << endl;
+      std::string childKernelName = getCudaKernelCallExprName((Stmt*) ck);
+      cout << "child kernel call : " << childKernelName << endl;
+      for(std::vector<const FunctionDecl *>::iterator f = kernelFuncs.begin(); f != kernelFuncs.end(); f++) {
+	if((*f)->getNameInfo().getName().getAsString() == childKernelName) {
+          cout << "Found matching child kernel call : " << (*f)->getNameInfo().getName().getAsString() << endl;
+	  break;
+	}
+      }
+    }
   }
 };
 
 class MyASTConsumer: public ASTConsumer {
 public:
   MyASTConsumer () {
-    /*    ForLoopMatcher = forStmt().bind("forLoop");
-    ForLoopMatcher_withSI =
-      forStmt(hasLoopInit(declStmt(hasSingleDecl(varDecl(hasInitializer(integerLiteral(equals(0)))))))).bind("forLoopSI");
-    ForLoopMatcher_withCall =
-      forStmt(hasBody(compoundStmt(has(callExpr())))).bind("callInLoop");
-    */
-    //Finder.addMatcher(ForLoopMatcher, &ForPrinter);
-    //Finder.addMatcher(ForLoopMatcher_withSI, &ForSIPrinter);
-    //Finder.addMatcher(ForLoopMatcher_withCall, &ForCallPrinter);
-    Finder.addMatcher(ParentKernelFuncMatcher, &ParentKernelFuncPrinter);
     Finder.addMatcher(KernelFuncMatcher, &KernelFuncPrinter);
   }
   void HandleTranslationUnit(ASTContext &Context) override {
@@ -108,11 +98,10 @@ public:
   }
 
 private:
-  ParentKernelFuncDefPrinter ParentKernelFuncPrinter;
   KernelFuncDefPrinter KernelFuncPrinter;
   //DeclarationMatcher KernelFuncMatcher = functionDecl(hasAttr(clang::attr::CUDAGlobal), hasBody(compoundStmt(has(exprWithCleanups(has(cudaKernelCallExpr())))))).bind("parentKernelFunc");
-  //DeclarationMatcher KernelFuncMatcher = functionDecl(hasAttr(clang::attr::CUDAGlobal)).bind("parentKernelFunc");
-  DeclarationMatcher ParentKernelFuncMatcher = functionDecl(hasAttr(clang::attr::CUDAGlobal), hasBody(compoundStmt(has(ifStmt(has(compoundStmt(has(ifStmt(has(compoundStmt(has(exprWithCleanups(has(cudaKernelCallExpr())))))))))))))).bind("parentKernelFunc");
+  //DeclarationMatcher ParentKernelFuncMatcher = functionDecl(hasAttr(clang::attr::CUDAGlobal)).bind("parentKernelFunc");
+//  DeclarationMatcher ParentKernelFuncMatcher = functionDecl(hasAttr(clang::attr::CUDAGlobal), hasBody(compoundStmt(has(ifStmt(has(compoundStmt(has(ifStmt(has(compoundStmt(has(exprWithCleanups(has(cudaKernelCallExpr())))))))))))))).bind("parentKernelFunc");
   DeclarationMatcher KernelFuncMatcher = functionDecl(hasAttr(clang::attr::CUDAGlobal)).bind("kernelFunc");
   MatchFinder Finder;
 };
