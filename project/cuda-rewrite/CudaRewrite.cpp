@@ -38,17 +38,6 @@ static cl::extrahelp MoreHelp("\nMore help text...");
 
 std::vector<const FunctionDecl *> kernelFuncs;
 
-clang::SourceManager *sm;
-clang::LangOptions lopt;
-
-std::string decl2str(const clang::FunctionDecl *d) {
-    if(sm == NULL) cout << "sm NULL" << endl;
-    clang::SourceLocation b(d->getLocStart()), _e(d->getLocEnd());
-    clang::SourceLocation e(clang::Lexer::getLocForEndOfToken(_e, 0, *sm, lopt));
-    return std::string(sm->getCharacterData(b),
-        sm->getCharacterData(e)-sm->getCharacterData(b));
-}
-
 clang::CUDAKernelCallExpr * hasCudaKernelCallExpr(Stmt *s) {
   Stmt * ckce;
   iterator_range<StmtIterator> s_children = s->children();
@@ -83,6 +72,29 @@ std::string getCudaKernelCallExprName(Stmt *c) {
   return "";
 }
 
+/*
+clang::Stmt * getVarDecl(Stmt *s) {
+  Stmt * var;
+  iterator_range<StmtIterator> s_children = s->children();
+  for(StmtIterator child = s_children.begin(); child != s_children.end(); child++) {
+    if(*child != NULL) {
+      if(isa<VarDecl>(*child)) {
+        return *child;
+      }
+      var = getVarDecl(*child);
+      if(var != NULL && isa<VarDecl>(var)) {
+        return var;
+      }
+    }
+  }
+  return NULL;
+}
+*/
+
+std::string nodeToSourceCode(Stmt *s, SourceManager &sm) {
+  return Lexer::getSourceText(CharSourceRange::getTokenRange(s->getSourceRange()), sm, LangOptions()).str();
+}
+
 class KernelFuncDefPrinter : public MatchFinder::MatchCallback {
 public :
   KernelFuncDefPrinter(Rewriter &Rewrite) : Rewrite(Rewrite) {}
@@ -94,11 +106,17 @@ public :
       kernelFuncs.push_back(kf);
     }
     else {
-      cout << "PARENT : " << kf->getNameInfo().getName().getAsString() << endl;
       std::string childKernelName = getCudaKernelCallExprName((Stmt*) ck);
-      cout << "child kernel call : " << childKernelName << endl;
       for(std::vector<const FunctionDecl *>::iterator f = kernelFuncs.begin(); f != kernelFuncs.end(); f++) {
 	if((*f)->getNameInfo().getName().getAsString() == childKernelName) {
+
+	  //get parameters from child kernel call
+	  std::string blocks = nodeToSourceCode(ck->getConfig()->getArg(0), Rewrite.getSourceMgr());
+	  std::string threads = nodeToSourceCode(ck->getConfig()->getArg(1), Rewrite.getSourceMgr());
+	  //(*f)->dumpColor();
+	  cout << ((VarDecl*) *((*f)->getBody()->child_begin()))->getNameAsString() << endl;;
+
+	  //get thread/global index variable. ASSUME it is the first statement
 	  
 	  /*
 	  cout << "Kernel config :" << endl;
@@ -110,12 +128,21 @@ public :
 	  
 	  //ck->dumpColor();
 	  
+	  /*
 	  CXXConstructExpr *b = (CXXConstructExpr*) ck->getConfig()->getArg(0);
 	  CXXConstructExpr *t = (CXXConstructExpr*) ck->getConfig()->getArg(1);
-
 	  const SourceManager *sm = Result.SourceManager;
 	  cout << "blocks : " << Lexer::getSourceText(CharSourceRange::getTokenRange(b->getSourceRange()), *sm, LangOptions()).str() << endl;
 	  cout << "threads : " << Lexer::getSourceText(CharSourceRange::getTokenRange(t->getSourceRange()), *sm, LangOptions()).str() << endl;
+	  */
+
+//	  SourceLocation s = Rewrite.getSourceMgr().getFileLoc((*f)->getLocStart());
+//	  SourceLocation e = Rewrite.getSourceMgr().getFileLoc((*f)->getLocEnd());
+
+
+	  //This works to remove child function!
+	  Rewrite.RemoveText(SourceRange(Rewrite.getSourceMgr().getFileLoc((*f)->getLocStart()), Rewrite.getSourceMgr().getFileLoc((*f)->getLocEnd())));
+
 	  break;
 	}
       }
