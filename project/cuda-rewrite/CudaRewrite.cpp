@@ -100,6 +100,78 @@ public :
   KernelFuncDefPrinter(Rewriter &Rewrite) : Rewrite(Rewrite) {}
 
   virtual void run(const MatchFinder::MatchResult &Result) {
+    //Get parent and child funcs and calls
+    const CUDAKernelCallExpr *parentCall = Result.Nodes.getNodeAs<clang::CUDAKernelCallExpr>("parentCudaCall");
+    const FunctionDecl *parentFunc = Result.Nodes.getNodeAs<clang::FunctionDecl>("parentFuncDecl");
+    const CUDAKernelCallExpr *childCall = Result.Nodes.getNodeAs<clang::CUDAKernelCallExpr>("childCudaCall");
+    const FunctionDecl *childFunc = Result.Nodes.getNodeAs<clang::FunctionDecl>("childFuncDecl");
+    //const VarDecl *globalID = Result.Nodes.getNodeAs<clang::VarDecl>("globalID");
+    const DeclStmt* globalID = Result.Nodes.getNodeAs<clang::DeclStmt>("globalID");
+
+    //Get child blocks and threads
+    CXXConstructExpr *b = (CXXConstructExpr*) childCall->getConfig()->getArg(0);
+    CXXConstructExpr *t = (CXXConstructExpr*) childCall->getConfig()->getArg(1);
+    std::string childBlocks = nodeToSourceCode((Stmt*) b, Rewrite.getSourceMgr());
+    std::string childThreads = nodeToSourceCode((Stmt*) t, Rewrite.getSourceMgr());
+
+    //Get global ID var from child func
+    std::string global_id = ((VarDecl*)(*(globalID->decl_begin())))->getNameAsString();
+    std::string global_id_type = ((VarDecl*)(*(globalID->decl_begin())))->getType().getAsString();
+    
+    //FL_childGridThreads
+    std::string fl_cgt = "FL_childGridThreads";
+    const std::string fl_cgt_init = "int " + fl_cgt + " = int(" + childBlocks + ")*" + childThreads + ";";
+    //for loop
+    std::string for_init = global_id_type + " " + global_id + " = 0; ";
+    std::string for_end = global_id + " < " + fl_cgt + "; ";
+    std::string for_inc = "++" + global_id;
+    std::string for_loop = "for (" + for_init + for_end + for_inc + ") ";
+
+    SourceLocation ac = Rewrite.getSourceMgr().getFileLoc(childFunc->getBody()->getLocStart());
+    SourceLocation dc = Rewrite.getSourceMgr().getFileLoc(childFunc->getBody()->getLocEnd());
+    cout << Lexer::getSourceText(CharSourceRange::getTokenRange(SourceRange(ac, dc)), Rewrite.getSourceMgr(), LangOptions()).str() << endl;
+
+    /*
+    //remove original ii declaration and initialization
+    SourceLocation gid_s = Rewrite.getSourceMgr().getFileLoc(globalID->getLocStart());
+    SourceLocation gid_e = Rewrite.getSourceMgr().getFileLoc(globalID->getLocEnd());
+    SourceLocation gid_sc = clang::Lexer::findLocationAfterToken(gid_e, tok::semi, Rewrite.getSourceMgr(), LangOptions(), false);
+    Rewrite.RemoveText(SourceRange(gid_s, gid_sc));
+    //cout << nodeToSourceCode((Stmt*)childFunc->getBody(), Rewrite.getSourceMgr());
+    */
+
+    /*
+    //put child func body in for loop
+    //SourceLocation cfs = Rewrite.getSourceMgr().getFileLoc(childFunc->getBody()->getLocStart());
+    //SourceLocation cfe = Rewrite.getSourceMgr().getFileLoc(childFunc->getBody()->getLocEnd());
+    std::string for_loop_with_body = for_loop + nodeToSourceCode(childFunc->getBody(), Rewrite.getSourceMgr());
+
+    //append FL_childGridThreads and the constructed forloop with its body
+    const std::string final_code = fl_cgt_init + for_loop_with_body;
+    cout << final_code << endl;
+    */
+    /*
+    //replace child kernel call with new code
+    SourceLocation ck_s = childCall->getLocStart();
+    SourceLocation ck_e = childCall->getLocEnd();
+    SourceLocation ck_sc = clang::Lexer::findLocationAfterToken(ck_e, tok::semi, Rewrite.getSourceMgr(), LangOptions(), false);
+    StringRef final_code_sref = StringRef(final_code);
+    Rewrite.ReplaceText(SourceRange(ck_s, ck_sc), final_code_sref);
+    */
+  }
+
+private:
+  Rewriter &Rewrite;
+};
+
+
+//OLD WORKING CODE
+/*
+class KernelFuncDefPrinter : public MatchFinder::MatchCallback {
+public :
+  KernelFuncDefPrinter(Rewriter &Rewrite) : Rewrite(Rewrite) {}
+
+  virtual void run(const MatchFinder::MatchResult &Result) {
     const FunctionDecl *kf = Result.Nodes.getNodeAs<clang::FunctionDecl>("kernelFunc");
     CUDAKernelCallExpr *ck = hasCudaKernelCallExpr(kf->getBody());
     if(ck == NULL) {
@@ -118,27 +190,11 @@ public :
 
 	  //get thread/global index variable. ASSUME it is the first statement
 	  
-	  /*
-	  cout << "Kernel config :" << endl;
-	  cout << "blocks" << endl;
-	  ck->getConfig()->getArg(0)->child_begin()->child_begin()->child_begin()->child_begin()->child_begin()->dumpColor();
-	  cout << "threads" << endl;
-	  ck->getConfig()->getArg(1)->child_begin()->child_begin()->child_begin()->child_begin()->child_begin()->dumpColor();
-	  */
-	  
-	  //ck->dumpColor();
-	  
-	  /*
 	  CXXConstructExpr *b = (CXXConstructExpr*) ck->getConfig()->getArg(0);
 	  CXXConstructExpr *t = (CXXConstructExpr*) ck->getConfig()->getArg(1);
 	  const SourceManager *sm = Result.SourceManager;
 	  cout << "blocks : " << Lexer::getSourceText(CharSourceRange::getTokenRange(b->getSourceRange()), *sm, LangOptions()).str() << endl;
 	  cout << "threads : " << Lexer::getSourceText(CharSourceRange::getTokenRange(t->getSourceRange()), *sm, LangOptions()).str() << endl;
-	  */
-
-//	  SourceLocation s = Rewrite.getSourceMgr().getFileLoc((*f)->getLocStart());
-//	  SourceLocation e = Rewrite.getSourceMgr().getFileLoc((*f)->getLocEnd());
-
 
 	  //This works to remove child function!
 	  Rewrite.RemoveText(SourceRange(Rewrite.getSourceMgr().getFileLoc((*f)->getLocStart()), Rewrite.getSourceMgr().getFileLoc((*f)->getLocEnd())));
@@ -152,6 +208,7 @@ public :
 private:
   Rewriter &Rewrite;
 };
+*/
 
 class MyASTConsumer: public ASTConsumer {
 public:
@@ -165,7 +222,15 @@ public:
 
 private:
   KernelFuncDefPrinter KernelFuncPrinter;
-  DeclarationMatcher KernelFuncMatcher = functionDecl(hasAttr(clang::attr::CUDAGlobal)).bind("kernelFunc");
+
+  //New Matcher
+  StatementMatcher KernelFuncMatcher = cudaKernelCallExpr(callee(functionDecl(hasDescendant(cudaKernelCallExpr(callee(functionDecl(hasBody(compoundStmt(hasDescendant(declStmt(has(varDecl(hasInitializer(expr())))).bind("globalID"))))).bind("childFuncDecl"))).bind("childCudaCall"))).bind("parentFuncDecl"))).bind("parentCudaCall");
+  //StatementMatcher KernelFuncMatcher = cudaKernelCallExpr(callee(functionDecl(hasDescendant(cudaKernelCallExpr(callee(functionDecl(hasBody(compoundStmt(hasDescendant(declStmt().bind("globalID"))))).bind("childFuncDecl"))).bind("childCudaCall"))).bind("parentFuncDecl"))).bind("parentCudaCall");
+  //StatementMatcher KernelFuncMatcher = cudaKernelCallExpr(callee(functionDecl(hasDescendant(cudaKernelCallExpr(callee(functionDecl().bind("childFuncDecl"))).bind("childCudaCall"))).bind("parentFuncDecl"))).bind("parentCudaCall");
+
+  //Old Matcher
+  //DeclarationMatcher KernelFuncMatcher = functionDecl(hasAttr(clang::attr::CUDAGlobal)).bind("kernelFunc");
+
   MatchFinder Finder;
 };
 
@@ -204,7 +269,7 @@ class MyFrontendAction : public ASTFrontendAction {
 public:
   MyFrontendAction() {}
   void EndSourceFileAction() override {
-    //TheRewriter.getEditBuffer(TheRewriter.getSourceMgr().getMainFileID()).write(llvm::outs());
+//    TheRewriter.getEditBuffer(TheRewriter.getSourceMgr().getMainFileID()).write(llvm::outs());
   }
   std::unique_ptr<ASTConsumer> CreateASTConsumer(CompilerInstance &CI,
 						 StringRef file) override {
