@@ -72,24 +72,12 @@ std::string getCudaKernelCallExprName(Stmt *c) {
   return "";
 }
 
-/*
-clang::Stmt * getVarDecl(Stmt *s) {
-  Stmt * var;
-  iterator_range<StmtIterator> s_children = s->children();
-  for(StmtIterator child = s_children.begin(); child != s_children.end(); child++) {
-    if(*child != NULL) {
-      if(isa<VarDecl>(*child)) {
-        return *child;
-      }
-      var = getVarDecl(*child);
-      if(var != NULL && isa<VarDecl>(var)) {
-        return var;
-      }
+std::string replace(std::string &str,const std::string &strToReplace,const std::string &strToReplaceWith){
+    if (str.find(strToReplace)!=std::string::npos) {
+      return(str.replace(str.find(strToReplace), strToReplace.length(), strToReplaceWith));
     }
-  }
-  return NULL;
+    return str;
 }
-*/
 
 std::string nodeToSourceCode(Stmt *s, SourceManager &sm) {
   return Lexer::getSourceText(CharSourceRange::getTokenRange(s->getSourceRange()), sm, LangOptions()).str();
@@ -105,7 +93,6 @@ public :
     const FunctionDecl *parentFunc = Result.Nodes.getNodeAs<clang::FunctionDecl>("parentFuncDecl");
     const CUDAKernelCallExpr *childCall = Result.Nodes.getNodeAs<clang::CUDAKernelCallExpr>("childCudaCall");
     const FunctionDecl *childFunc = Result.Nodes.getNodeAs<clang::FunctionDecl>("childFuncDecl");
-    //const VarDecl *globalID = Result.Nodes.getNodeAs<clang::VarDecl>("globalID");
     const DeclStmt* globalID = Result.Nodes.getNodeAs<clang::DeclStmt>("globalID");
 
     //Get child blocks and threads
@@ -127,37 +114,29 @@ public :
     std::string for_inc = "++" + global_id;
     std::string for_loop = "for (" + for_init + for_end + for_inc + ") ";
 
-    SourceLocation ac = Rewrite.getSourceMgr().getFileLoc(childFunc->getBody()->getLocStart());
-    SourceLocation dc = Rewrite.getSourceMgr().getFileLoc(childFunc->getBody()->getLocEnd());
-    cout << Lexer::getSourceText(CharSourceRange::getTokenRange(SourceRange(ac, dc)), Rewrite.getSourceMgr(), LangOptions()).str() << endl;
+    //child body to string
+    Stmt* childFuncBody = childFunc->getBody();
+    std::string childBodyStr = nodeToSourceCode(childFuncBody, Rewrite.getSourceMgr());
+    //globalVar to string
+    std::string globalIDStr = nodeToSourceCode((Stmt*) globalID, Rewrite.getSourceMgr());
+    const std::string empty = "";
+    //remove globalID from child Body
+    replace(childBodyStr, globalIDStr, empty);
+    //combine final code from fl_childGridThreads and the childBody inside the for loop
+    std::string finalCode = fl_cgt_init + for_loop + childBodyStr;
+    cout << "finalCode\n" << finalCode << endl;
 
-    /*
-    //remove original ii declaration and initialization
-    SourceLocation gid_s = Rewrite.getSourceMgr().getFileLoc(globalID->getLocStart());
-    SourceLocation gid_e = Rewrite.getSourceMgr().getFileLoc(globalID->getLocEnd());
-    SourceLocation gid_sc = clang::Lexer::findLocationAfterToken(gid_e, tok::semi, Rewrite.getSourceMgr(), LangOptions(), false);
-    Rewrite.RemoveText(SourceRange(gid_s, gid_sc));
-    //cout << nodeToSourceCode((Stmt*)childFunc->getBody(), Rewrite.getSourceMgr());
-    */
-
-    /*
-    //put child func body in for loop
-    //SourceLocation cfs = Rewrite.getSourceMgr().getFileLoc(childFunc->getBody()->getLocStart());
-    //SourceLocation cfe = Rewrite.getSourceMgr().getFileLoc(childFunc->getBody()->getLocEnd());
-    std::string for_loop_with_body = for_loop + nodeToSourceCode(childFunc->getBody(), Rewrite.getSourceMgr());
-
-    //append FL_childGridThreads and the constructed forloop with its body
-    const std::string final_code = fl_cgt_init + for_loop_with_body;
-    cout << final_code << endl;
-    */
-    /*
-    //replace child kernel call with new code
+    //get range of child kernel call and replace with generated code
     SourceLocation ck_s = childCall->getLocStart();
     SourceLocation ck_e = childCall->getLocEnd();
     SourceLocation ck_sc = clang::Lexer::findLocationAfterToken(ck_e, tok::semi, Rewrite.getSourceMgr(), LangOptions(), false);
-    StringRef final_code_sref = StringRef(final_code);
+    StringRef final_code_sref = StringRef(finalCode);
     Rewrite.ReplaceText(SourceRange(ck_s, ck_sc), final_code_sref);
-    */
+
+    //remove child function declaration
+    SourceLocation cfs = Rewrite.getSourceMgr().getFileLoc(childFunc->getLocStart());
+    SourceLocation cfe = Rewrite.getSourceMgr().getFileLoc(childFunc->getLocEnd());
+    Rewrite.RemoveText(SourceRange(cfs, cfe));
   }
 
 private:
@@ -269,7 +248,7 @@ class MyFrontendAction : public ASTFrontendAction {
 public:
   MyFrontendAction() {}
   void EndSourceFileAction() override {
-//    TheRewriter.getEditBuffer(TheRewriter.getSourceMgr().getMainFileID()).write(llvm::outs());
+    TheRewriter.getEditBuffer(TheRewriter.getSourceMgr().getMainFileID()).write(llvm::outs());
   }
   std::unique_ptr<ASTConsumer> CreateASTConsumer(CompilerInstance &CI,
 						 StringRef file) override {
