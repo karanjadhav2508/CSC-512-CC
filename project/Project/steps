@@ -1,0 +1,19 @@
+Identification:
+1. Parent call : done
+2. Parent function : done
+3. Child call : done
+4. Child function : dine
+
+Extract info:
+1. child blocks/threads : done
+2. global id var in child func : done
+
+Construct code:
+1. FL_childGridThreads : done
+2. ii : done
+3. for loop with 1 and 2 : done
+
+Replace;
+1. Replace ii with new ii in child_func body
+2. replace child kernel call with new body
+3. place construct code at start of new body

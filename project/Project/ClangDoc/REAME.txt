@@ -1,0 +1,65 @@
+Notes on How to Learn Clang (created on 7/24/2017 for Clang 6.0)
+================================================================
+
+On LLVM website, there are many separate articles and documentations
+on LLVM and Clang. This note points out a way for you to get a quick
+start.
+
+Start with the Tutorial0.pdf. This PDF file is a copy of the webpage
+"Tutorial for building tools using LibTooling and LibASTMatchers"
+(http://clang.llvm.org/docs/LibASTMatchersTutorial.html), but contains
+some corrections of some typos in that webpage.
+
+That tutorial shows how to install everything you need, and how to use
+Libtoolings and ASTMatchers to access AST nodes. The installation and
+building process of LLVM is kind of tedious. We provide you with a
+virtual machine with a prebuilt LLVM image to save you time. It will
+also help make your final project submission directly runnable by the
+Grader. So, you may ignore the first two pages of Tutorial0.pdf. The
+rest of Tutorial0.pdf provides important instructions on how to
+develop tools based on LLVM and Clang.
+
+---- Examples ------
+
+Folder "Examples" in this directory provides several extra examples.
+
+  "LoopFind" and "LoopFindAlt" are two alternative implementations of
+  the same functionalities on finding various loops in a given
+  program. Try them out. (You will need to follow the procedure shown
+  in the tutorial, including copying them to
+  ~/clang-llvm/llvm/tools/clang/tools/extra/, add needed entries into
+  the CMakelists.txt in that folder, and then go to
+  ~/clang-llvm/build, run ninja.)
+
+After finishing that tutorial and the examples, you may try
+the example "cudaCall-find", which finds cuda kernel calls in a given
+CUDA program. Two notes. First, you will need to first install CUDA if you haven't. To do the installation, download "cuda.tgz" from Velocity, create a directory /usr/local/cuda, and enter that directory and run "sudo tar xzf ~/Download/cuda.tgz" (replace ~/Download with the path where your cuda.tgz is). 
+
+Second, you will need to use some extra flags when running
+"cudaCall-Find" as a comment in the Tutorial0.pdf shows. Specifically, it should run like the following on an input cuda program "aCudaFile.cu"
+
+ bin/cudaCall-find aCudaFile.cu -- --cuda-host-only -I/usr/local/cuda/include
+
+After trying all these examples for code analysis, you may try "LoopRewrite" inside folder "Examples", which shows how to use Rewriter to modify a given program.
+
+----- To learn more -----
+For your further code development, you will need to learn more about ASTMatcher, Rewriter, and so on. The following links could be useful:
+
+* ASTMater Reference Page: http://clang.llvm.org/docs/LibASTMatchersReference.html (hint: clicking the "Name" entries in the tables gives you some detailed explanations)
+
+* Rewriter Class Page: https://clang.llvm.org/doxygen/classclang_1_1Rewriter.html
+
+More Links
+http://clang.llvm.org/docs/Tooling.html
+http://clang.llvm.org/docs/IntroductionToTheClangAST.html
+http://clang.llvm.org/docs/RAVFrontendAction.html
+http://clang.llvm.org/docs/LibTooling.html
+http://clang.llvm.org/docs/LibASTMatchers.html
+https://clang.llvm.org/doxygen/index.html
+
+Some random hints:
+
+* Clang has a builtin AST-dump mode, which can be enabled with the flag -ast-dump. Example: clang -Xclang -ast-dump -fsyntax-only test-files/simple_loops.cc
+
+* You may always see more details in the corresponding header or source files of a class.
+
