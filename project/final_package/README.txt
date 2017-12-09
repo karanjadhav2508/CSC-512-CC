@@ -34,6 +34,11 @@ directory /usr/local/cuda, and enter that directory and run "sudo tar xzf ~/Down
    NOTE: Warnings will be shown while compiling the tools, this is due to the presence of unused code, you can ignore them as they are not fatal.
 
 ---------------------------------------STEPS to run code on ARC cluster for testing----------------------------------------------------
+NOTE : Please reserve and run code only on one of the following nodes:
+- 2 nodes with nVidia GTX Titan X: nodes c[74,76-77], queue: -p gtxtitanx
+- 2 node with nVidia GTX 1080: nodes c[44,47], queue: -p gtx1080
+- 1 node with nVidia Titan X: node c50, queue: -p titanx
+
 4. Inorder to run code on ARC, scp the lonestargpu-2.0 folder and cub-1.7.4 folder present in final_package and create a softlink cub-1.7.4 under the top level folder of lonestars,pointing it to the folder of cub-1.7.4 just scp'd.
    NOTE:Please use the same cub folder we have provided as our lonestar folder is dependent on this particular version.
 
