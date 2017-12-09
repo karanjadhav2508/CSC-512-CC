@@ -1,3 +1,4 @@
+//@author Bijo Joseph
 //To run this tool on mst_dp_modular/main.cu use the following command
 // bin/cuda-identify-T3 ../../Project2_freeLaunch/Examples/mst_dp_modular/main.cu -- --cuda-host-only --cuda-gpu-arch=sm_35 -w -I/usr/local/cuda/include-pthread -I ../../lonestargpu-2.0/include/ -I../../lonestargpu-2.0/cub-1.7.4/
 #include "clang/AST/AST.h"
