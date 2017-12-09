@@ -22,7 +22,7 @@
      
   *cub-1.7.4: 
 
------------------------------------------STEPS to run code on VM-----------------------------------------------------------
+-----------------------------------------STEPS to compile and run code on VM-----------------------------------------------------------
 
 1. Untar the tar file in the the home directory of the VM i.e $HOME
 
@@ -33,7 +33,7 @@ directory /usr/local/cuda, and enter that directory and run "sudo tar xzf ~/Down
    is called "run.sh". Run it : ./run.sh
    NOTE: Warnings will be shown while compiling the tools, this is due to the presence of unused code, you can ignore them as they are not fatal.
 
----------------------------------------STEPS to run code on ARC cluster----------------------------------------------------
+---------------------------------------STEPS to run code on ARC cluster for testing----------------------------------------------------
 4. Inorder to run code on ARC, scp the lonestargpu-2.0 folder and cub-1.7.4 folder present in final_package and create a softlink cub-1.7.4 under the top level folder of lonestars,pointing it to the folder of cub-1.7.4 just scp'd.
    NOTE:Please use the same cub folder we have provided as our lonestar folder is dependent on this particular version.
 
@@ -55,8 +55,11 @@ For each of these folders, do the following:
 5. ./run
     NOTE : Please do not change or comment/uncomment anything in run.
 
-Interpreting the results:
+=====Interpreting the results====
 6. Compare the output of run to output of following command:
 	head -1 lonestargpu-2.0/apps/mst_dp_modular/REF-RESULTS
 They should match, to indicate success.
  
+===Bugs and/or Limitations===
+Doesn't run on other two test cases provided in run(they are commented out)
+NOTE : Provided reference transformed code didn't run on them either.
