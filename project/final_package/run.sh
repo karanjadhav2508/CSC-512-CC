@@ -28,3 +28,6 @@ $BUILD_DIR/bin/t1 $ARGS
 $BUILD_DIR/bin/t2 $ARGS
 $BUILD_DIR/bin/t3 $ARGS
 $BUILD_DIR/bin/t4 $ARGS
+
+#remove softlink
+rm -f "$HOME/final_package/lonestargpu-2.0/cub-1.7.4"
